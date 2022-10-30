@@ -12,7 +12,7 @@ tickers_lst = []
 URL = "ws://127.0.0.1:5678"
 tickers_labels = [f'ticker_{i:02}' for i in range(100)]
 
-# Fill options for tickers checklist
+# Fill options list for tickers dropdown
 options = []
 for ticker in tickers_labels:
     options.append({"label": ticker, "value": ticker})
