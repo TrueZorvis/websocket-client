@@ -10,30 +10,38 @@ from dash_extensions import WebSocket
 # Global variables and constants
 tickers_lst = []
 URL = "ws://127.0.0.1:5678"
+tickers_labels = [f'ticker_{i:02}' for i in range(100)]
 
-# Create app
+# Fill options for tickers checklist
+options = []
+for ticker in tickers_labels:
+    options.append({"label": ticker, "value": ticker})
+
+# Create app and layout
 app = DashProxy(prevent_initial_callbacks=True)
 app.layout = html.Div([
-    html.H3('Tickers Live Feed'),
-    html.Div(id="live-values"),
+    WebSocket(url=URL, id="ws"),
+    html.H2('Tickers Live Feed'),
+    html.Br(),
     dcc.Graph(id='live-graph'),
-    WebSocket(url=URL, id="ws")
+    html.Br(),
+    html.Label('Tickers:'),
+    dcc.Checklist(options=options, value=tickers_labels[:5], id='ticker-checklist', inline=True),
 ])
 
 
-@app.callback(Output("live-values", "children"), [Input("ws", "message")])
-def update_div(e):
-    return f"Response from websocket: {e['data']}"
-
-
-@app.callback(Output("live-graph", "figure"), [Input("ws", "message")])
-def update_graph(e):
+@app.callback(
+    Output(component_id="live-graph", component_property="figure"),
+    [Input(component_id="ws", component_property="message"),
+     Input(component_id="ticker-checklist", component_property="value")]
+)
+def update_graph(ws_data, tickers_chosen):
     global tickers_lst
 
     # Collect data in dataframe
-    tickers_lst.append(json.loads(e['data']))
+    tickers_lst.append(json.loads(ws_data['data']))
     df = pd.DataFrame.from_records(tickers_lst)
-    fig = px.line(df, x='date', y=['ticker_00', 'ticker_01', 'ticker_02', 'ticker_03', 'ticker_04'])
+    fig = px.line(df, x='date', y=tickers_chosen)
 
     # Overfill protection
     if len(tickers_lst) > 60:  # Collect in tickers_lst last 60 items
