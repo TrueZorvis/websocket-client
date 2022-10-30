@@ -26,14 +26,14 @@ app.layout = html.Div([
     dcc.Graph(id='live-graph'),
     html.Br(),
     html.Label('Tickers:'),
-    dcc.Checklist(options=options, value=tickers_labels[:5], id='ticker-checklist', inline=True),
+    dcc.Dropdown(options=options, value=tickers_labels[:5], id='ticker-dropdown', multi=True)
 ])
 
 
 @app.callback(
     Output(component_id="live-graph", component_property="figure"),
     [Input(component_id="ws", component_property="message"),
-     Input(component_id="ticker-checklist", component_property="value")]
+     Input(component_id="ticker-dropdown", component_property="value")]
 )
 def update_graph(ws_data, tickers_chosen):
     global tickers_lst
